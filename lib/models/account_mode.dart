@@ -1,0 +1,4 @@
+enum AccountMode {
+  personal,
+  business,
+}

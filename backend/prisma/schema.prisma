@@ -1,0 +1,367 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum AccountMode {
+  personal
+  business
+}
+
+enum SubscriptionTier {
+  free
+  premium
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+enum TransactionCategory {
+  salary
+  freelance
+  investment
+  rental
+  otherIncome
+  rent
+  utilities
+  groceries
+  transport
+  entertainment
+  health
+  education
+  shopping
+  food
+  sales
+  service
+  consulting
+  commission
+  marketing
+  software
+  hosting
+  office
+  equipment
+  taxes
+  insurance
+  payroll
+  subscription
+  other
+}
+
+enum RecurrenceType {
+  once
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+enum BillingCycle {
+  monthly
+  yearly
+}
+
+enum GoalType {
+  income
+  expense
+  savings
+  revenue
+  profit
+}
+
+enum GoalPeriod {
+  monthly
+  yearly
+}
+
+enum ReminderType {
+  invoiceDue
+  followUp
+  subscriptionRenewal
+  goalDeadline
+  custom
+}
+
+enum ContactType {
+  lead
+  client
+}
+
+enum ContactStatus {
+  newLead
+  contacted
+  qualified
+  proposal
+  negotiation
+  won
+  lost
+  churned
+}
+
+enum ContactSource {
+  website
+  referral
+  social
+  cold
+  event
+  other
+}
+
+enum DealStage {
+  discovery
+  qualification
+  proposal
+  negotiation
+  closedWon
+  closedLost
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  overdue
+  cancelled
+}
+
+enum ActivityType {
+  call
+  email
+  meeting
+  task
+  note
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  passwordHash     String           @map("password_hash")
+  name             String?
+  avatarUrl        String?          @map("avatar_url")
+  subscriptionTier SubscriptionTier @default(free) @map("subscription_tier")
+  rcCustomerId     String?          @unique @map("rc_customer_id")
+  language         String           @default("tr")
+  selectedAiModel  String           @default("grok") @map("selected_ai_model")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  transactions  Transaction[]
+  subscriptions Subscription[]
+  goals         Goal[]
+  reminders     Reminder[]
+  contacts      Contact[]
+  deals         Deal[]
+  invoices      Invoice[]
+  activities    Activity[]
+  refreshTokens RefreshToken[]
+  aiApiKeys     AiApiKey[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model AiApiKey {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  model     String
+  apiKey    String   @map("api_key")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, model])
+  @@map("ai_api_keys")
+}
+
+model Transaction {
+  id          String              @id @default(uuid())
+  userId      String              @map("user_id")
+  title       String
+  amount      Float
+  type        TransactionType
+  category    TransactionCategory
+  recurrence  RecurrenceType      @default(once)
+  date        DateTime
+  notes       String?
+  isPaid      Boolean             @default(true) @map("is_paid")
+  accountMode AccountMode         @map("account_mode")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, accountMode])
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+model Subscription {
+  id              String       @id @default(uuid())
+  userId          String       @map("user_id")
+  name            String
+  amount          Float
+  cycle           BillingCycle
+  startDate       DateTime     @map("start_date")
+  nextPaymentDate DateTime     @map("next_payment_date")
+  category        String?
+  isActive        Boolean      @default(true) @map("is_active")
+  accountMode     AccountMode  @map("account_mode")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, accountMode])
+  @@map("subscriptions")
+}
+
+model Goal {
+  id           String      @id @default(uuid())
+  userId       String      @map("user_id")
+  title        String
+  type         GoalType
+  targetAmount Float       @map("target_amount")
+  currentAmount Float      @default(0) @map("current_amount")
+  startDate    DateTime    @map("start_date")
+  endDate      DateTime    @map("end_date")
+  period       GoalPeriod  @default(monthly)
+  isActive     Boolean     @default(true) @map("is_active")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("goals")
+}
+
+model Reminder {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  title       String
+  subtitle    String?
+  dueDate     DateTime     @map("due_date")
+  type        ReminderType
+  isCompleted Boolean      @default(false) @map("is_completed")
+  linkedId    String?      @map("linked_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueDate])
+  @@map("reminders")
+}
+
+model Contact {
+  id              String        @id @default(uuid())
+  userId          String        @map("user_id")
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  type            ContactType   @default(lead)
+  status          ContactStatus @default(newLead)
+  source          ContactSource @default(other)
+  tags            String[]      @default([])
+  notes           String?
+  totalRevenue    Float         @default(0) @map("total_revenue")
+  lastContactedAt DateTime?     @map("last_contacted_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deals      Deal[]
+  invoices   Invoice[]
+  activities Activity[]
+
+  @@index([userId])
+  @@map("contacts")
+}
+
+model Deal {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  title             String
+  amount            Float
+  stage             DealStage @default(discovery)
+  contactId         String?   @map("contact_id")
+  contactName       String    @default("") @map("contact_name")
+  probability       Int       @default(10)
+  expectedCloseDate DateTime? @map("expected_close_date")
+  notes             String?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([userId, stage])
+  @@map("deals")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  userId        String        @map("user_id")
+  invoiceNumber String        @map("invoice_number")
+  contactId     String?       @map("contact_id")
+  contactName   String        @map("contact_name")
+  items         Json          @default("[]")
+  taxRate       Float         @default(20) @map("tax_rate")
+  status        InvoiceStatus @default(draft)
+  issueDate     DateTime      @map("issue_date")
+  dueDate       DateTime      @map("due_date")
+  paidDate      DateTime?     @map("paid_date")
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("invoices")
+}
+
+model Activity {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  contactId   String?      @map("contact_id")
+  type        ActivityType
+  title       String
+  description String?
+  date        DateTime
+  isCompleted Boolean      @default(false) @map("is_completed")
+  dealId      String?      @map("deal_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([contactId])
+  @@map("activities")
+}

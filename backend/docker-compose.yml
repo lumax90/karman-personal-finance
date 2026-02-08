@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fincrm
+      POSTGRES_PASSWORD: fincrm_secret_change_me
+      POSTGRES_DB: fincrm
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fincrm"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://fincrm:fincrm_secret_change_me@db:5432/fincrm?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-this-to-a-long-random-string}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-this-to-another-random-string}
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: production
+      CORS_ORIGIN: "*"
+      REVENUECAT_WEBHOOK_SECRET: ${REVENUECAT_WEBHOOK_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

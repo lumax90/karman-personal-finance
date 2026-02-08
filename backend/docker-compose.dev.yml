@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fincrm
+      POSTGRES_PASSWORD: fincrm_dev
+      POSTGRES_DB: fincrm
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fincrm"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata_dev:
