@@ -1,7 +1,7 @@
 {
-  "name": "fincrm-backend",
+  "name": "karman-backend",
   "version": "1.0.0",
-  "description": "FinCRM Backend API - Express.js + Prisma + PostgreSQL",
+  "description": "Karman Backend API - Express.js + Prisma + PostgreSQL",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",

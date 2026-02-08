@@ -19,7 +19,8 @@ class ApiException implements Exception {
 
 class ApiClient {
   // Change this to your production URL when deploying
-  static const String _baseUrl = 'http://localhost:3000/api';
+  // Local testing: use Mac's IP. Production: change to your server URL.
+  static const String _baseUrl = 'http://192.168.1.4:3000/api';
 
   static const _storage = FlutterSecureStorage();
   static const _accessTokenKey = 'access_token';
