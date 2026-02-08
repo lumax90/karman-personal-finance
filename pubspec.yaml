@@ -32,9 +32,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.png"
-  adaptive_icon_background: "#0f172a"
-  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  image_path: "assets/icon/karman-lightbg.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/karman-transparent.png"
 
 flutter:
   uses-material-design: true

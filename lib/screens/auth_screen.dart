@@ -114,26 +114,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Logo
-                        Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
-                            ),
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.25),
-                                blurRadius: 20,
-                                spreadRadius: 0,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 34),
+                        Image.asset(
+                          'assets/icon/karman-lightbg.png',
+                          width: 80,
+                          height: 80,
                         ),
                         const SizedBox(height: 20),
                         Text(
