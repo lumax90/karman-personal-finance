@@ -1,4 +1,4 @@
-package com.financecrm.finance_crm
+package com.karman.app
 
 import io.flutter.embedding.android.FlutterActivity
 
